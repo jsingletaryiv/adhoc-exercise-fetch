@@ -1,0 +1,15 @@
+# Ignoring the following files:
+
+# Compiled Output
+/dist
+/tmp
+
+# dependencies
+/node_modules
+
+# IDEs and Editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
