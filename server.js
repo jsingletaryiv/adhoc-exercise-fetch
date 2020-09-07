@@ -2,15 +2,10 @@
 const express = require('express');
 const app = express();
 
-// Define Headers
-app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', "*");
-  res.header('Access-Control-Allow-Methods', 'GET');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  next();
-});
+// NOTE: Again, this type of property would be stored in a `.config` or `.env` file. For brevity...
+const PORT = process.env.PORT || 3030;
 
-// TmpData - Point to actual API endpoint
+// TODO: Upon success response update actual API endpoint to use requested data
 const tmpData = [
   { id: 1, color: "brown", disposition: "closed" },
   { id: 2, color: "yellow", disposition: "open" },
@@ -64,43 +59,58 @@ const tmpData = [
   { id: 50, color: "blue", disposition: "open" }
 ]
 
-// Routes
+// Define Headers
+app.use(function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', "*");
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
+// Define Routes
 app.get('/', (req, res) => res.send('index.js loaded via express route'));
 
-app.get('/records', (req, res) => {
-  const page = parseInt(req.query.page);
-  const limit = parseInt(req.query.limit);
-
-  // Set Pagination Index Values
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
-
-  // Mutated Results Object
-  const results = {};
-
-  // Evaluate `nextPage` Properties
-  if (endIndex < tmpData.length) {
-    results.nextPage = {
-      page: page + 1,
-      limit: limit
-    }
-  }
-  // Evaluate `previousPage` Properties
-  if (startIndex > 0) {
-    results.previousPage = {
-      page: page - 1,
-      limit: limit
-    }
-  }
-
-  // results.result = tmpData.slice(startIndex, endIndex);
-  results.result = tmpData.slice(startIndex, endIndex);
-  res.json(results);
-  // res.json(res.paginatedData);
+app.get('/records', paginateResults(tmpData), (req, res) => {
+  // console.log('Paginated Data: ', res.paginatedResults);
+  res.json(res.paginatedResults);
 })
+
+// Middleware Helper Function  
+function paginateResults(model) { // <- Wrapper function
+  return (req, res, next) => {    // <- Returns actual middleware
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
   
-// NOTE: Again,this type of property could be stored in a `.config` or `.env` file.
-const PORT = process.env.PORT || 3030;
+    // Set Pagination Index Values
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+  
+    // Mutated Results Object
+    const results = {};
+  
+    // Evaluate `nextPage` Properties
+    if (endIndex < model.length) {
+      results.nextPage = {
+        page: page + 1,
+        limit: limit
+      }
+    }
+    // Evaluate `previousPage` Properties
+    if (startIndex > 0) {
+      results.previousPage = {
+        page: page - 1,
+        limit: limit
+      }
+    }
+  
+    // results.result = tmpData.slice(startIndex, endIndex);
+    results.result = model.slice(startIndex, endIndex);
+  
+    //Store paginated results to the `response` object
+    res.paginatedResults = results;
+    next();
+  }
+}
 
 app.listen(PORT, () => {
   console.log(`%cAd-Hoc "Fetch" exercise listening at http://localhost:${PORT}`, `background: light-grey; color: green;`);

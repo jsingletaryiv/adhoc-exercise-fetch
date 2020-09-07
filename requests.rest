@@ -2,6 +2,10 @@ GET http://localhost:3030/records
 
 ###
 
+GET http://localhost:3030/records?page=1&limit=10&offset=0
+
+###
+
 GET http://localhost:3030/records?page=2&limit=10&offset=0
 
 ###
