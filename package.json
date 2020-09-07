@@ -2,7 +2,8 @@
   "name": "Ad-Hoc-Frontend-Homework",
   "version": "1.0.0",
   "description": "Homework using modern JS tooling (ES6/flow)",
-  "main": "app.js",
+  "main": "server.js",
+  "private": true,
   "directories": {
     "test": "test"
   },
@@ -30,8 +31,11 @@
     "webpack-cli": "^3.2.1"
   },
   "scripts": {
-    "start": "node app",
-    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start",
+    "start": "node server",
+    "dev": "(cd ./records && node ./index.js) & nodemon ./server.js",
+    "dev:app": "nodemon ./server.js",
+    "dev:api": "cd ./records && nodemon index",
+    "install:clean": "(cd records ; rm -rf ./node_modules/ ./package-lock.json && npm install) & rm -rf ./node_modules/ ./package-lock.json && npm install",
     "test": "sh ./test/test.sh",
     "karma": "./node_modules/karma/bin/karma start karma.conf.js --single-run",
     "build": "./node_modules/.bin/webpack --config webpack.config.js"
