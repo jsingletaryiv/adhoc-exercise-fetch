@@ -1,3 +1,5 @@
+### Using Port 3030
+
 GET http://localhost:3030/records
 
 ###
@@ -12,12 +14,14 @@ GET http://localhost:3030/records?page=2&limit=10&offset=0
 
 GET http://localhost:3030/records?page=2&limit=10&offset=0&color[]
 
-###
+### Using Port 3000
 
 GET http://localhost:3000/records
 
 ###
 
-GET http://localhost:3000/records?page1=&limit=10
+GET http://localhost:3000/records?limit=10&offset=0
 
 ###
+
+GET http://localhost:3000/records?&limit=10&offset=0

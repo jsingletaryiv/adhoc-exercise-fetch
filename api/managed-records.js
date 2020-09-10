@@ -1,11 +1,18 @@
 import fetch from '../util/fetch-fill';
-// import URI from "urijs";
+import URI from "urijs";
 
 // Your retrieve function plus any additional functions go here.
 
 // #region Requirements  
 /**
  *  TODOS: (Requirements)
+ * 
+ *  |> Each item returned from the `/records` endpoint will have the following:
+ *
+ *      - **id**: A unique integer
+ *      - **color**: One of `"red"`, `"brown"`, `"blue"`, `"yellow"`, or `"green"`
+ *      - **disposition**: Either `"open"` or `"closed"`
+ *      ! **isPrimary**: Property to be added client-side to returned dataset
  *
  *  |> The `/records` endpoint accepts the following options, sent as query string parameters on the request URL:
  *      - **limit**: The number of items to be returned
@@ -29,9 +36,25 @@ import fetch from '../util/fetch-fill';
  *
  *  |> Return a promise from `retrieve` that resolves with the transformed data.
  *
- *  - Additional Notes => See ./README.md
+ *  -//- Additional Notes => See ./README.md
 */
 // #endregion
+
+/** // ~~ Construct URI ~~>
+ * 
+ *  duplicateQueryParameters: false
+ *  escapeQuerySpace: true
+ *  fragment: null
+ *  hostname: "localhost"
+ *  password: null
+ *  path: null
+ *  port: "3000"
+ *  preventInvalidHostname: false
+ *  protocol: "https"
+ *  query: null
+ *  urn: null
+ *  username: null
+*/
 
 /** Records API
  *
@@ -48,37 +71,135 @@ import fetch from '../util/fetch-fill';
  *
  *   @example  '/records?limit=2&offset=0&color[]=brown&color[]=green'
 */
-const retrieve = (limit, offset, color) => {
+export const retrieve = (params) => {
   // Records API Resource
   // window.path = "http://localhost:3000/records";
-  
+
   // NOTE: Again, properties like this would live in a `.config` or `.env` file.
-  const BASE_URI = process.env.BASE_URI || "http://localhost:3000";
+  let URI_RECORDS = new URI({
+    protocol: process.env.URI_PROTOCOL || "http",
+    hostname: process.env.URI_HOSTNAME || "localhost",
+    port:     process.env.URI_PORT     || "3000",
+    path:     "/records",
+  });
+
+  if (params.color && params.color.length) {
+    URI_RECORDS.query(`page=1&limit=${params.limit}&offset=${params.offset}&color=${params.color}`);
+  } else {
+    URI_RECORDS.query(`page=1&limit=${params.limit}&offset=${params.offset}`);
+  }
+
+  console.info('URI_RECORDS: ', URI_RECORDS);
   
-  // Init Fetch API to access data via `Records` API
-  fetch(BASE_URI + "/records", {
+  const options = { 
     method: 'GET',
     headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      "limit" : limit,
-      "offset": offset,
-      "color" : color
-    })
-  })
+      'Content-Type': 'application/json'
+    }
+  };
+
+  // getRecordsPageByPage(progressCallback, options, URI_RECORDS)
+  //   .then(allRecords => {
+  //     // all planets have been loaded
+  //     console.log(allRecords.map(p => p.id))
+  //   })
+  //   .catch(console.error);
+  
+  // Init and `await` for Fetch API to access data via `Records` API
+  fetch(URI_RECORDS, options)
   .then(res => {
-    console.log('Promise complete: ', res);
+    if (!res.ok) {
+      console.warn('ERROR: ', res.statusText);
+    }
+    console.info('Promise: ', res);
     return res.json();
   })
   .then(data => {
-    console.log(data);
-    return data;
-  })
-  .catch(error => console.error('ERROR: ', error));
+    console.info('Promise Resolved', data);
+    
+    let params = (new URL(URI_RECORDS)).searchParams;
+    let page = params.get('page');
+    let limit = params.get('limit');
 
-  // return retrieve;
-  // retrieve({ page: 2, colors: ["red", "brown"] });
+    const paginatedData = paginateResults(data, { page, limit });
+
+    console.log('Paged Data: ', paginatedData);
+
+    return paginatedData;
+  })
+  .catch(error => {
+    console.error('ERROR: ', error);
+  });
+
 }
-export { retrieve }
-// module.exports = retrieve;
+
+// function getRecordsPageByPage(progress, options, URI_RECORDS, allRecords = []) {
+//   return new Promise((resolve, reject) => fetch(URI_RECORDS, options)
+//     .then(resolve => {
+//       if (!resolve.ok) {
+//         throw `${resolve.status}: ${resolve.statusText}`;
+//       }
+//       return resolve.json();
+//     })
+//     .then(data => {
+//       console.log('Data: ', data);
+//       allRecords = allRecords.concat(data);
+
+//       if (data.next) {
+//         progress && progress(allRecords);
+//         getRecordsPageByPage(progress, data.next, allRecords)
+//           .then(resolve)
+//           .catch(reject)
+//       } else {
+//         resolve(allRecords);
+//       }
+//     }).catch(reject)
+//   );
+// }
+
+// function progressCallback(allRecords) {
+//   // render progress
+//   console.log(`${allRecords.length} loaded`);
+// }
+
+// Pagination Helper Function  
+// NOTE: This type of function would end up becoming a "utility" that could be imported and used as needed  
+function paginateResults(dataset, params) {
+  const page = parseInt(params.page);
+  const limit = parseInt(params.limit);
+
+  // Set Pagination Index Values
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  // Mutated Results Object
+  const results = {};
+
+  // Evaluate `nextPage` Properties
+  if (endIndex < dataset.length) {
+    results.nextPage = {
+      page: page + 1,
+      limit: limit
+    }
+  }
+  // Evaluate `previousPage` Properties
+  if (startIndex > 0) {
+    results.previousPage = {
+      page: page - 1,
+      limit: limit
+    }
+  }
+
+  // results.result = tmpData.slice(startIndex, endIndex);
+  results.result = dataset.slice(startIndex, endIndex);
+
+  //Store paginated results to the `response` object
+  // res.paginatedResults = results;
+  return results;
+}
+
+// return retrieve;
+// retrieve({ page: 2, colors: ["red", "brown"] });
+//retrieve({ limit: 10, offset: 0, colors: ["red", "brown"] });
+
+// export { retrieve };
