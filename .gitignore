@@ -1,6 +1,7 @@
 # Ignoring the following files:
 
 # Compiled Output
+/build
 /dist
 /tmp
 

@@ -2,7 +2,7 @@
   "name": "Ad-Hoc-Frontend-Homework",
   "version": "1.0.0",
   "description": "Homework using modern JS tooling (ES6/flow)",
-  "main": "server.js",
+  "main": "./src/index.js",
   "private": true,
   "directories": {
     "test": "test"
@@ -31,7 +31,7 @@
     "webpack-cli": "^3.2.1"
   },
   "scripts": {
-    "start": "node server",
+    "start": "node ./server.js",
     "dev": "(cd ./records && node ./index.js) & nodemon ./server.js",
     "dev:app": "nodemon ./server.js",
     "dev:api": "cd ./records && nodemon index",
