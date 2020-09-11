@@ -1,5 +1,4 @@
 import { retrieve } from '../api/managed-records.js';
-// const retrieve = require('../api/managed-records');
 
 // #region Dev Notes
 /**
@@ -10,7 +9,7 @@ import { retrieve } from '../api/managed-records.js';
 // #endregion
 
 const getRecords = () => {
-  console.log(`managed-recards.js successfully imported via index.js`);
+  console.log(`managed-records.js successfully imported via index.js`);
   return retrieve({ limit: 10, offset: 0, colors: [] }); 
 }
 
